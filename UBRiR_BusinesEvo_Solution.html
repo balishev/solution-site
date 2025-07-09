@@ -1,0 +1,296 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busines-evo: Решение для УБРиР</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        header {
+            background-color: #005BFF;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        header img.logo {
+            max-width: 150px;
+        }
+        header h1 {
+            font-size: 2rem;
+            margin: 0.5rem 0;
+        }
+        header p {
+            font-size: 1.1rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        section {
+            margin-bottom: 3rem;
+        }
+        h2 {
+            color: #005BFF;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        p {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #FF6200;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .cta-button:hover {
+            background-color: #e55a00;
+        }
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            margin: 1rem 0;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .qr-code {
+            max-width: 150px;
+            margin: 1rem auto;
+            display: block;
+        }
+        .image {
+            max-width: 100%;
+            height: auto;
+            margin: 1rem 0;
+            border-radius: 5px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .stats-grid div {
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 5px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #005BFF;
+            color: white;
+            font-weight: 600;
+        }
+        td {
+            font-size: 0.9rem;
+        }
+        tr:last-child td {
+            font-weight: 600;
+            color: #FF6200;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        footer {
+            background-color: #005BFF;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+        footer a {
+            color: #FF6200;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+            header p {
+                font-size: 0.9rem;
+            }
+            h2 {
+                font-size: 1.4rem;
+            }
+            p {
+                font-size: 0.9rem;
+            }
+            .container {
+                padding: 1rem;
+            }
+            th, td {
+                font-size: 0.8rem;
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://www.ubrr.ru/images/logo.png" alt="UBRiR Logo" class="logo">
+        <h1>Busines-evo: Решение для УБРиР</h1>
+        <p>Решение кейса УБРиР — курс, игра и маркетинг для подростков</p>
+    </header>
+
+    <div class="container">
+        <section id="intro">
+            <h2>Наше решение</h2>
+            <p>Команда Busines-evo представляет проект для УБРиР: онлайн-курс «Кошелёк и жизнь» и мобильную игру «Финансовая империя». Мы бьём по болям подростков — донаты, шмотки, тусовки — и учим управлять деньгами. Сканируйте QR-код, чтобы узнать больше!</p>
+            <img src="https://via.placeholder.com/150?text=QR+Code" class="qr-code" alt="QR Code">
+            <a href="https://ubrr.ru/course" class="cta-button">Начать курс</a>
+            <a href="https://ubrr.ru/game" class="cta-button">Скачать игру</a>
+        </section>
+
+        <section id="video">
+            <h2>Наше видео</h2>
+            <p>15-секундный шортс для TikTok и Reels: «Задонатил и на нуле? Узнай, как копить на кроссы!» ИИ-аватар решает боли подростков, CTA ведёт к курсу и игре.</p>
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/placeholder" frameborder="0" allowfullscreen></iframe>
+            </div>
+        </section>
+
+        <section id="game">
+            <h2>Игра: Финансовая империя</h2>
+            <p>Мобильная игра в жанре tycoon с AR-дуэлями. Строй империю: кафе, акции, крипта. Побеждай в PvP, управляя бюджетом. AR-квесты с QR-кодами в школах мотивируют учиться. Навыки из курса дают преимущество!</p>
+            <img src="https://via.placeholder.com/600x300?text=Game+Screenshot" class="image" alt="Game Screenshot">
+        </section>
+
+        <section id="classroom">
+            <h2>Интерактивный класс</h2>
+            <p>Классы для уроков: модульные столы с USB, проектор, баннер с QR-кодом. Табло показывает ТОП-5 игроков. Пилот в 50 школах Урала, охват 50,000 учеников.</p>
+            <div class="table-container">
+                <table>
+                    <tr>
+                        <th>Элемент</th>
+                        <th>Стоимость (₽)</th>
+                    </tr>
+                    <tr>
+                        <td>Модульная мебель</td>
+                        <td>150,000</td>
+                    </tr>
+                    <tr>
+                        <td>Проектор + экран</td>
+                        <td>55,000</td>
+                    </tr>
+                    <tr>
+                        <td>5 планшетов</td>
+                        <td>75,000</td>
+                    </tr>
+                    <tr>
+                        <td>Оформление стен</td>
+                        <td>25,000</td>
+                    </tr>
+                    <tr>
+                        <td>Цифровое табло</td>
+                        <td>45,000</td>
+                    </tr>
+                    <tr>
+                        <td>Итого</td>
+                        <td>350,000</td>
+                    </tr>
+                </table>
+            </div>
+            <img src="https://via.placeholder.com/600x300?text=Classroom+Mockup" class="image" alt="Classroom Mockup">
+        </section>
+
+        <section id="marketing">
+            <h2>Маркетинговая стратегия</h2>
+            <p>Два хода: <b>видео</b> (TikTok, Reels, челлендж #ФинансыПоУму, 1M+ просмотров) и <b>Минпросвещение</b> (директива, пилот в 50 школах, охват 500+ школ). Бюджет: 700,000 ₽ (видео, блогеры, гранты).</p>
+            <div class="stats-grid">
+                <div>10,000+ регистраций</div>
+                <div>5,000+ скачиваний</div>
+                <div>1M+ просмотров</div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>© 2025 Busines-evo для УБРиР. Свяжитесь с нами: <a href="mailto:info@ubrr.ru">info@ubrr.ru</a></p>
+        <p><a href="https://tiktok.com/@ubrr">TikTok</a> | <a href="https://instagram.com/ubrr">Instagram</a> | <a href="https://vk.com/ubrr">ВКонтакте</a></p>
+    </footer>
+</body>
+</html>
